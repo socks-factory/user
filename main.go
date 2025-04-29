@@ -10,15 +10,18 @@ import (
 	"strings"
 	"syscall"
 
+	"user/api"
+	"user/db"
+	"user/db/mongodb"
+
 	corelog "log"
 
 	"github.com/go-kit/kit/log"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
-	"github.com/microservices-demo/user/api"
-	"github.com/microservices-demo/user/db"
-	"github.com/microservices-demo/user/db/mongodb"
 	stdopentracing "github.com/opentracing/opentracing-go"
-	zipkin "github.com/openzipkin/zipkin-go-opentracing"
+	zipkin "github.com/openzipkin-contrib/zipkin-go-opentracing"
+	zipkingo "github.com/openzipkin/zipkin-go"
+	zipkinhttp "github.com/openzipkin/zipkin-go/reporter/http"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	commonMiddleware "github.com/weaveworks/common/middleware"
 )
@@ -48,7 +51,6 @@ func init() {
 }
 
 func main() {
-
 	flag.Parse()
 	// Mechanical stuff.
 	errc := make(chan error)
@@ -68,7 +70,7 @@ func main() {
 		os.Exit(1)
 	}
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
-	host := strings.Split(localAddr.String(), ":")[0]
+	_ = strings.Split(localAddr.String(), ":")[0]
 	defer conn.Close()
 
 	var tracer stdopentracing.Tracer
@@ -78,23 +80,27 @@ func main() {
 		} else {
 			logger := log.With(logger, "tracer", "Zipkin")
 			logger.Log("addr", zip)
-			collector, err := zipkin.NewHTTPCollector(
-				zip,
-				zipkin.HTTPLogger(logger),
-			)
+
+			reporter := zipkinhttp.NewReporter(zip)
+			defer reporter.Close()
 			if err != nil {
 				logger.Log("err", err)
 				os.Exit(1)
 			}
-			tracer, err = zipkin.NewTracer(
-				zipkin.NewRecorder(collector, false, fmt.Sprintf("%v:%v", host, port), ServiceName),
-			)
+			endpoint, err := zipkingo.NewEndpoint("user", localAddr.String())
 			if err != nil {
-				logger.Log("err", err)
+				logger.Log("unable to create local endpoint: %+v\n", err)
 				os.Exit(1)
 			}
+
+			nativeTracer, err := zipkingo.NewTracer(reporter, zipkingo.WithLocalEndpoint(endpoint))
+			if err != nil {
+				logger.Log("unable to create tracer: %+v\n", err)
+			}
+			tracer = zipkin.Wrap(nativeTracer)
+
 		}
-		stdopentracing.InitGlobalTracer(tracer)
+		stdopentracing.SetGlobalTracer(tracer)
 	}
 	dbconn := false
 	for !dbconn {
