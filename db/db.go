@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/microservices-demo/user/users"
+	"user/users"
 )
 
 // Database represents a simple interface so we can switch to a new system easily
