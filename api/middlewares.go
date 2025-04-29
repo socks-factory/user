@@ -2,8 +2,8 @@ package api
 
 import (
 	"time"
-	
-        "user/users"
+
+	"user/users"
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/metrics"
