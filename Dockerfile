@@ -21,5 +21,5 @@ ENV USER_DATABASE mongodb
 
 COPY --from=build /app/user /user
 
-EXPOSE 8080
+EXPOSE 80
 CMD ["/user", "-port=8080"]
