@@ -14,4 +14,4 @@ RUN su - mongodb && mongod --fork --logpath /var/log/mongodb.log --dbpath /data/
 # Make the new dir a VOLUME to persist it
 VOLUME /data/db-users
 
-CMD ["mongod", "--config", "/etc/mongodb.conf"]
+CMD ["mongod", "-f", "/etc/mongodb.conf"]
