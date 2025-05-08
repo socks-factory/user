@@ -1,11 +1,9 @@
 function get_results(result) {
-  if (result.toJSON) {
-    print(result.toJSON());
-  }
+    print(tojson(result));
 }
 
 function insert_address(object) {
-    print(db.addresses.insertOne(object));
+    print(db.addresses.insert(object));
 }
 
 insert_address({

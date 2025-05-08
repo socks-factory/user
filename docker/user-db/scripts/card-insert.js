@@ -1,11 +1,9 @@
 function get_results(result) {
-  if (result.toJSON) {
-    print(result.toJSON());
-  }
+    print(tojson(result));
 }
 
 function insert_card(object) {
-    print(db.cards.insertOne(object));
+    print(db.cards.insert(object));
 }
 
 insert_card({
