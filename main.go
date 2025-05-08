@@ -23,7 +23,6 @@ import (
 	zipkingo "github.com/openzipkin/zipkin-go"
 	zipkinhttp "github.com/openzipkin/zipkin-go/reporter/http"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
-	commonMiddleware "github.com/weaveworks/common/middleware"
 )
 
 var (
@@ -146,20 +145,10 @@ func main() {
 	// HTTP router
 	router := api.MakeHTTPHandler(endpoints, logger, tracer)
 
-	httpMiddleware := []commonMiddleware.Interface{
-		commonMiddleware.Instrument{
-			Duration:     HTTPLatency,
-			RouteMatcher: router,
-		},
-	}
-
-	// Handler
-	handler := commonMiddleware.Merge(httpMiddleware...).Wrap(router)
-
 	// Create and launch the HTTP server.
 	go func() {
 		logger.Log("transport", "HTTP", "port", port)
-		errc <- http.ListenAndServe(fmt.Sprintf(":%v", port), handler)
+		errc <- http.ListenAndServe(fmt.Sprintf(":%v", port), router)
 	}()
 
 	// Capture interrupts.
