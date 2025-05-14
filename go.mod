@@ -10,7 +10,7 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.1
 	github.com/prometheus/client_golang v1.22.0
 	github.com/weaveworks/common v0.0.0-20171004150435-279ce76f2c0f
-	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
+	gopkg.in/mgo.v2 v2.0.0-20160818020120-3f83fa500528
 )
 
 require (
